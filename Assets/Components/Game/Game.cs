@@ -1,4 +1,12 @@
+using TMPro;
 using UnityEngine;
+
+public enum BallActions
+{
+    None = 0,
+    TopPlayerGoal = 1,
+    BottomPlayerGoal = 2
+}
 
 public class Game : MonoBehaviour
 {
@@ -17,6 +25,14 @@ public class Game : MonoBehaviour
         topPaddle,
         bottomPaddle;
 
+    [SerializeField]
+    TextMeshPro 
+        topScore, 
+        bottomScore;
+
+    float topPlayerScore = 0;
+    float bottomPlayerScore = 0;
+
     void Awake()
     {
         float topBoundary = CalculateVerticalBoundary(topWall);
@@ -32,7 +48,24 @@ public class Game : MonoBehaviour
 
     void Update()
     {
-        ball.CheckCollision();
+        PaddleEdge topPaddleEdges = topPaddle.GetEdges();
+        PaddleEdge bottomPaddleEdges = bottomPaddle.GetEdges();
+        
+        switch(ball.CheckCollision(topPaddleEdges, bottomPaddleEdges))
+        {
+            case BallActions.None:
+                return;
+            case BallActions.TopPlayerGoal:
+                topPlayerScore++;
+                ball.transform.position = new Vector3(0, 0, 0);
+                topScore.SetText("{0}", topPlayerScore);
+                break;
+            case BallActions.BottomPlayerGoal:
+                bottomPlayerScore++;
+                ball.transform.position = new Vector3(0, 0, 0);
+                bottomScore.SetText("{0}", bottomPlayerScore);
+                break;
+        }
     }
 
     private float CalculateVerticalBoundary(Wall wall)

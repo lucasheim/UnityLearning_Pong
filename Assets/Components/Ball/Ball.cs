@@ -1,5 +1,6 @@
 using UnityEngine;
 
+
 public class Ball : MonoBehaviour
 {
     [SerializeField, Min(2f)]
@@ -33,7 +34,9 @@ public class Ball : MonoBehaviour
         leftBoundary = left + halfBallSize;
     }
 
-    public void CheckCollision()
+    // TODO: should this be at the game level instead of the ball?
+    // Maybe the ball just exposes methods to change the internal stuff, but shouldn't get this data from the paddle as it makes it too game-aware
+    public BallActions CheckCollision(PaddleEdge topPaddleEdges, PaddleEdge bottomPaddleEdges)
     {
         float ballX = transform.position.x;
         float ballY = transform.position.y;
@@ -41,23 +44,45 @@ public class Ball : MonoBehaviour
 
         if (ballY >= topBoundary)
         {
-            speedVec.y = -speedVec.y;
-            transform.position = new Vector3(ballX, topBoundary, ballZ);
+            if (TouchesPaddle(ballX, topPaddleEdges))
+            {
+                speedVec.y = -speedVec.y;
+                transform.position = new Vector3(ballX, topBoundary, ballZ);
+            } 
+            else
+            {
+                return BallActions.BottomPlayerGoal;    
+            }
         }
-        if (ballY <= bottomBoundary)
+        else if (ballY <= bottomBoundary)
         {
-            speedVec.y = -speedVec.y;
-            transform.position = new Vector3(ballX, bottomBoundary, ballZ);
+            if (TouchesPaddle(ballX, bottomPaddleEdges))
+            {
+                speedVec.y = -speedVec.y;
+                transform.position = new Vector3(ballX, bottomBoundary, ballZ);
+            }
+            else
+            {
+                return BallActions.TopPlayerGoal;
+            }
         }
+
         if (ballX >= rightBoundary)
         {
             speedVec.x = -speedVec.x;
             transform.position = new Vector3(rightBoundary, ballY, ballZ);
         }
-        if (ballX <= leftBoundary)
+        else if (ballX <= leftBoundary)
         {
             speedVec.x = -speedVec.x;
             transform.position = new Vector3(leftBoundary, ballY, ballZ);
         }
+
+        return BallActions.None;
+    }
+
+    private bool TouchesPaddle(float value, PaddleEdge paddleEdge)
+    {
+        return value >= paddleEdge.leftEdge && value <= paddleEdge.rightEdge;
     }
 }
