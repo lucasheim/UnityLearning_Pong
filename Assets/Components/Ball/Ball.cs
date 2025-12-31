@@ -16,8 +16,7 @@ public class Ball : MonoBehaviour
 
     void Awake()
     {
-        // TODO: Randomize initial position and avoid magic number
-        speedVec = new Vector2(speed, speed * 0.3f);
+        ResetBall();
     }
 
     void Update()
@@ -46,24 +45,34 @@ public class Ball : MonoBehaviour
         {
             if (TouchesPaddle(ballX, topPaddleEdges))
             {
+                float offset = GetTouchOffset(ballX, topPaddleEdges);
                 speedVec.y = -speedVec.y;
+                speedVec.x = offset * speed;
+                // new code?
+                speedVec = speedVec.normalized * speed;
                 transform.position = new Vector3(ballX, topBoundary, ballZ);
+                return BallActions.PaddleTouch;    
             } 
             else
             {
-                return BallActions.BottomPlayerGoal;    
+                return BallActions.Goal;    
             }
         }
         else if (ballY <= bottomBoundary)
         {
             if (TouchesPaddle(ballX, bottomPaddleEdges))
             {
+                float offset = GetTouchOffset(ballX, bottomPaddleEdges);
                 speedVec.y = -speedVec.y;
+                speedVec.x = offset * speed;
+                // new code?
+                speedVec = speedVec.normalized * speed;
                 transform.position = new Vector3(ballX, bottomBoundary, ballZ);
+                return BallActions.PaddleTouch;
             }
             else
             {
-                return BallActions.TopPlayerGoal;
+                return BallActions.Goal;
             }
         }
 
@@ -81,8 +90,22 @@ public class Ball : MonoBehaviour
         return BallActions.None;
     }
 
+    public void ResetBall()
+    {
+        transform.position = new Vector3(0, 0, 0);
+        float newBallAngle = Random.Range(0.3f, 0.6f);
+        speedVec = new Vector2(speed, speed * -newBallAngle);
+    }
+
     private bool TouchesPaddle(float value, PaddleEdge paddleEdge)
     {
         return value >= paddleEdge.leftEdge && value <= paddleEdge.rightEdge;
+    }
+
+    private float GetTouchOffset(float ballX, PaddleEdge paddleEdge)
+    {
+        float contactOffset = ballX - paddleEdge.leftEdge;
+        float fullPaddleWidth = paddleEdge.rightEdge - paddleEdge.leftEdge;
+        return 2f * (contactOffset / fullPaddleWidth) - 1f;
     }
 }
