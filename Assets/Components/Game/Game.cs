@@ -35,12 +35,16 @@ public class Game : MonoBehaviour
 
     [SerializeField]
     TextMeshPro 
-        scoreText;
+        scoreText,
+        gameOverText,
+        gameOverPointsText,
+        countdownText;
 
     // TODO: review the variables and protected/public 
     float playerScore = 0;
     GameStates currentState = GameStates.Countdown;
 
+    private readonly WaitForSeconds waitOneSecond = new WaitForSeconds(1);
     private readonly WaitForSeconds waitThreeSeconds = new WaitForSeconds(3);
 
     void Awake()
@@ -102,16 +106,27 @@ public class Game : MonoBehaviour
 
         if (newState == GameStates.Countdown)
         {
+            countdownText.gameObject.SetActive(true);
+            countdownText.SetText("Starting in...");
+            scoreText.gameObject.SetActive(true);
+            scoreText.SetText("3");
             StartCoroutine(ExecuteCountdown());
         }
         else if (newState == GameStates.Playing)
         {
+            scoreText.SetText("0");
+            ball.ResetBall();
             ball.gameObject.SetActive(true);
         }
         else if (newState == GameStates.GameOver)
         {
             ball.gameObject.SetActive(false);
-            scoreText.SetText("Game Over, total points: {0}", playerScore);
+            gameOverText.SetText("Game Over");
+            gameOverText.gameObject.SetActive(true);
+            gameOverPointsText.SetText("{0} points", playerScore);
+            playerScore = 0;
+            gameOverPointsText.gameObject.SetActive(true);
+            scoreText.gameObject.SetActive(false);
             StartCoroutine(ExecuteGameOver());
         }
     }
@@ -122,7 +137,17 @@ public class Game : MonoBehaviour
         Debug.Log("Started Countdown Coroutine at timestamp : " + Time.time);
 
         //yield on a new YieldInstruction that waits for 5 seconds.
-        yield return waitThreeSeconds;
+        yield return waitOneSecond;
+
+        scoreText.SetText("2");
+
+        yield return waitOneSecond;
+
+        scoreText.SetText("1");
+
+        yield return waitOneSecond;
+
+        gameOverText.gameObject.SetActive(false);
 
         //After we have waited 5 seconds print the time again.
         Debug.Log("Finished Countdown Coroutine at timestamp : " + Time.time);
@@ -141,6 +166,8 @@ public class Game : MonoBehaviour
         //After we have waited 5 seconds print the time again.
         Debug.Log("Finished Gameover Coroutine at timestamp : " + Time.time);
 
+        gameOverText.gameObject.SetActive(false);
+        gameOverPointsText.gameObject.SetActive(false);
         ChangeState(GameStates.Countdown);
     }
 }
