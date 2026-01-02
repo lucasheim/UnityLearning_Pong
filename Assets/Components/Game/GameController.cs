@@ -1,12 +1,5 @@
 using UnityEngine;
 
-public enum BallActions
-{
-    None = 0,
-    Goal = 1,
-    PaddleTouch = 2
-}
-
 public class GameController : MonoBehaviour
 {
     [SerializeField]
@@ -56,7 +49,20 @@ public class GameController : MonoBehaviour
 
     private void InitializeStateMachine()
     {
-        gameContext = new GameContext(ball, topPaddle, bottomPaddle, uiController);
+        float topBoundary = topWall.CalculateVerticalBoundary();
+        float bottomBoundary = bottomWall.CalculateVerticalBoundary();
+        float leftBoundary = leftWall.CalculateHorizontalBoundary();
+        float rightBoundary = rightWall.CalculateHorizontalBoundary();
+
+        float halfBallSize = ball.transform.localScale.x / 2;
+        CollisionDetector collisionDetector = new CollisionDetector(
+            topBoundary - halfBallSize,
+            bottomBoundary + halfBallSize,
+            leftBoundary + halfBallSize,
+            rightBoundary - halfBallSize
+        );
+
+        gameContext = new GameContext(ball, topPaddle, bottomPaddle, uiController, collisionDetector);
         stateMachine.Initialize(gameContext);
     }
 }

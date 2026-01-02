@@ -25,19 +25,28 @@ public class PlayingState : IGameState
         PaddleEdges topEdges = context.TopPaddle.GetEdges();
         PaddleEdges bottomEdges = context.BottomPaddle.GetEdges();
 
-        BallActions action = context.Ball.CheckCollision(topEdges, bottomEdges);
+        BallCollisionResult collision = context.CollisionDetector.CheckCollision(
+            context.Ball.Position,
+            topEdges,
+            bottomEdges
+        );
 
-        switch (action)
+        switch (collision.Type)
         {
-            case BallActions.None:
+            case CollisionType.None:
                 return;
 
-            case BallActions.PaddleTouch:
+            case CollisionType.PaddleHit:
+                context.Ball.BounceOffPaddle(collision.PaddleContactOffset);
                 context.Score++;
                 context.UIController.UpdateScore(context.Score);
                 break;
 
-            case BallActions.Goal:
+            case CollisionType.WallHit:
+                context.Ball.BounceOffWall();
+                break;
+
+            case CollisionType.Goal:
                 stateMachine.GoToNextState();
                 break;
         }

@@ -1,18 +1,18 @@
 using UnityEngine;
 
-
 public class Ball : MonoBehaviour
 {
+    private const float MIN_LAUNCH_ANGLE = 0.3f;
+    private const float MAX_LAUNCH_ANGLE = 0.6f;
+
     [SerializeField, Min(2f)]
-    float speed = 10f;
+    private float speed = 10f;
 
-    Vector2 speedVec;
-
-    float
-        topBoundary,
-        bottomBoundary,
-        leftBoundary,
-        rightBoundary;
+    private Vector2 velocity;
+    private float topBoundary;
+    private float bottomBoundary;
+    private float leftBoundary;
+    private float rightBoundary;
 
     void Awake()
     {
@@ -21,7 +21,7 @@ public class Ball : MonoBehaviour
 
     void Update()
     {
-        transform.position += (Vector3)speedVec * Time.deltaTime;
+        transform.position += (Vector3)velocity * Time.deltaTime;
     }
 
     public void SetMovementBoundaries(float top, float bottom, float left, float right)
@@ -33,66 +33,37 @@ public class Ball : MonoBehaviour
         leftBoundary = left + halfBallSize;
     }
 
-    // TODO: should this be at the game level instead of the ball?
-    // Maybe the ball just exposes methods to change the internal stuff, but shouldn't get this data from the paddle as it makes it too game-aware
-    public BallActions CheckCollision(PaddleEdges topPaddleEdges, PaddleEdges bottomPaddleEdges)
+    public Vector3 Position => transform.position;
+
+    public void BounceOffPaddle(float contactOffset)
     {
-        float ballX = transform.position.x;
-        float ballY = transform.position.y;
-        float ballZ = transform.position.z;
+        float ballY = Position.y;
+        float ballZ = Position.z;
+        float newYPosition = ballY >= topBoundary ? topBoundary : bottomBoundary;
 
-        if (ballY >= topBoundary)
-        {
-            if (TouchesPaddle(ballX, topPaddleEdges))
-            {
-                float offset = GetTouchOffset(ballX, topPaddleEdges);
-                speedVec.y = -speedVec.y;
-                speedVec.x = offset * speed;
-                speedVec = speedVec.normalized * speed;
-                transform.position = new Vector3(ballX, topBoundary, ballZ);
-                return BallActions.PaddleTouch;    
-            } 
-            else
-            {
-                return BallActions.Goal;    
-            }
-        }
-        else if (ballY <= bottomBoundary)
-        {
-            if (TouchesPaddle(ballX, bottomPaddleEdges))
-            {
-                float offset = GetTouchOffset(ballX, bottomPaddleEdges);
-                speedVec.y = -speedVec.y;
-                speedVec.x = offset * speed;
-                speedVec = speedVec.normalized * speed;
-                transform.position = new Vector3(ballX, bottomBoundary, ballZ);
-                return BallActions.PaddleTouch;
-            }
-            else
-            {
-                return BallActions.Goal;
-            }
-        }
+        velocity.y = -velocity.y;
+        velocity.x = contactOffset * speed;
+        velocity = velocity.normalized * speed;
 
-        if (ballX >= rightBoundary)
-        {
-            speedVec.x = -speedVec.x;
-            transform.position = new Vector3(rightBoundary, ballY, ballZ);
-        }
-        else if (ballX <= leftBoundary)
-        {
-            speedVec.x = -speedVec.x;
-            transform.position = new Vector3(leftBoundary, ballY, ballZ);
-        }
+        transform.position = new Vector3(Position.x, newYPosition, ballZ);
+    }
 
-        return BallActions.None;
+    public void BounceOffWall()
+    {
+        float ballX = Position.x;
+        float ballY = Position.y;
+        float ballZ = Position.z;
+        float newXPosition = ballX >= rightBoundary ? rightBoundary : leftBoundary;
+
+        velocity.x = -velocity.x;
+        transform.position = new Vector3(newXPosition, ballY, ballZ);
     }
 
     public void ResetPosition()
     {
-        transform.position = new Vector3(0, 0, 0);
-        float newBallAngle = Random.Range(0.3f, 0.6f);
-        speedVec = new Vector2(speed, speed * -newBallAngle);
+        transform.position = Vector3.zero;
+        float angle = Random.Range(MIN_LAUNCH_ANGLE, MAX_LAUNCH_ANGLE);
+        velocity = new Vector2(speed, speed * -angle);
     }
 
     public void Show()
@@ -103,17 +74,5 @@ public class Ball : MonoBehaviour
     public void Hide()
     {
         gameObject.SetActive(false);
-    }
-
-    private bool TouchesPaddle(float value, PaddleEdges paddleEdge)
-    {
-        return value >= paddleEdge.leftEdge && value <= paddleEdge.rightEdge;
-    }
-
-    private float GetTouchOffset(float ballX, PaddleEdges paddleEdge)
-    {
-        float contactOffset = ballX - paddleEdge.leftEdge;
-        float fullPaddleWidth = paddleEdge.rightEdge - paddleEdge.leftEdge;
-        return 2f * (contactOffset / fullPaddleWidth) - 1f;
     }
 }
