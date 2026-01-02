@@ -43,7 +43,12 @@ public class GameController : MonoBehaviour
         ball.SetMovementBoundaries(topBoundary, bottomBoundary, leftBoundary, rightBoundary);
         ball.Hide();
 
+        IInputProvider playerInput = new PlayerInputProvider();
+
+        topPaddle.Initialize(playerInput);
         topPaddle.SetMovementBoundaries(leftBoundary, rightBoundary);
+
+        bottomPaddle.Initialize(playerInput);
         bottomPaddle.SetMovementBoundaries(leftBoundary, rightBoundary);
 
         InitializeStateMachine();

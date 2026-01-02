@@ -14,8 +14,7 @@ public struct PaddleEdges
 
 public class Paddle : MonoBehaviour
 {
-    // TODO: How to decouple this from the paddle itself?
-    InputSystem_Actions inputActions;
+    private IInputProvider inputProvider;
 
     [SerializeField, Min(1f)]
     float speed = 10f;
@@ -24,19 +23,9 @@ public class Paddle : MonoBehaviour
         lowerMovementBoundary,
         upperMovementBoundary;
 
-    void Awake()
+    public void Initialize(IInputProvider input)
     {
-        inputActions = new InputSystem_Actions();
-    }
-
-    void OnEnable()
-    {
-        inputActions.Player.Enable();
-    }
-
-    void OnDisable()
-    {
-        inputActions.Player.Disable();
+        inputProvider = input;
     }
 
     public void SetMovementBoundaries(float lowerBoundary, float upperBoundary)
@@ -48,9 +37,11 @@ public class Paddle : MonoBehaviour
 
     void Update()
     {
-        Vector2 moveValue = inputActions.Player.Move.ReadValue<Vector2>();
-        float movementAmount = moveValue.x * speed * Time.deltaTime;
-        
+        if (inputProvider == null) return;
+
+        float horizontalInput = inputProvider.GetHorizontalAxis();
+        float movementAmount = horizontalInput * speed * Time.deltaTime;
+
         Vector3 newPosition = transform.position;
         newPosition.x = Mathf.Clamp(newPosition.x + movementAmount, lowerMovementBoundary, upperMovementBoundary);
         transform.position = newPosition;
