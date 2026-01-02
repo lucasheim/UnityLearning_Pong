@@ -1,23 +1,23 @@
 using System.Collections;
 using UnityEngine;
 
-public class CountdownState : IGameState
+public class CountdownState : BaseGameState
 {
-    private readonly GameStateMachine stateMachine;
     private Coroutine countdownCoroutine;
 
-    public CountdownState(GameStateMachine stateMachine)
+    public override StateType StateType => StateType.Countdown;
+
+    public CountdownState(
+        ICoroutineRunner coroutineRunner,
+        IStateTransitionRequester transitionRequester)
+        : base(coroutineRunner, transitionRequester)
     {
-        this.stateMachine = stateMachine;
     }
 
-    public string GetStateName() => "Countdown";
-
-    public void Enter(GameContext context)
+    public override void Enter(GameContext context)
     {
-        Debug.Log("Entering Countdown State");
         context.UIController.ShowCountdownTick(3);
-        countdownCoroutine = stateMachine.RunCoroutine(ExecuteCountdown(context));
+        countdownCoroutine = coroutineRunner.StartManagedCoroutine(ExecuteCountdown(context));
     }
 
     private IEnumerator ExecuteCountdown(GameContext context)
@@ -30,18 +30,17 @@ public class CountdownState : IGameState
 
         yield return new WaitForSeconds(1);
 
-        stateMachine.GoToNextState();
+        transitionRequester.RequestTransition(StateType.Playing);
     }
 
-    public void Update(GameContext context)
+    public override void Update(GameContext context)
     {
         // No frame logic for this state
     }
 
-    public void Exit(GameContext context)
+    public override void Exit(GameContext context)
     {
-        Debug.Log("Exiting Countdown State");
         context.UIController.HideCountdownTick();
-        stateMachine.StopRunningCoroutine(countdownCoroutine);
+        coroutineRunner.StopManagedCoroutine(countdownCoroutine);
     }
 }

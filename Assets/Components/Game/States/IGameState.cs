@@ -1,6 +1,6 @@
 public interface IGameState
 {
-    string GetStateName();
+    StateType StateType { get; }
 
     void Enter(GameContext context);
     void Update(GameContext context);

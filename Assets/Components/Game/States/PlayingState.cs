@@ -1,26 +1,25 @@
 using UnityEngine;
 
-public class PlayingState : IGameState
+public class PlayingState : BaseGameState
 {
-    private readonly GameStateMachine stateMachine;
+    public override StateType StateType => StateType.Playing;
 
-    public string GetStateName() => "Playing";
-
-    public PlayingState(GameStateMachine stateMachine)
+    public PlayingState(
+        ICoroutineRunner coroutineRunner,
+        IStateTransitionRequester transitionRequester)
+        : base(coroutineRunner, transitionRequester)
     {
-        this.stateMachine = stateMachine;
     }
 
-    public void Enter(GameContext context)
+    public override void Enter(GameContext context)
     {
-        Debug.Log("Entering Playing State");
         context.Score = 0;
         context.UIController.UpdateScore(0);
         context.Ball.ResetPosition();
         context.Ball.Show();
     }
 
-    public void Update(GameContext context)
+    public override void Update(GameContext context)
     {
         PaddleEdges topEdges = context.TopPaddle.GetEdges();
         PaddleEdges bottomEdges = context.BottomPaddle.GetEdges();
@@ -47,14 +46,13 @@ public class PlayingState : IGameState
                 break;
 
             case CollisionType.Goal:
-                stateMachine.GoToNextState();
+                transitionRequester.RequestTransition(StateType.GameOver);
                 break;
         }
     }
 
-    public void Exit(GameContext context)
+    public override void Exit(GameContext context)
     {
-        Debug.Log("Exiting Playing State");
         context.Ball.Hide();
     }
 }

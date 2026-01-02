@@ -1,40 +1,40 @@
 using System.Collections;
 using UnityEngine;
-public class GameOverState : IGameState
+
+public class GameOverState : BaseGameState
 {
-    private readonly GameStateMachine stateMachine;
     private Coroutine gameOverCoroutine;
 
-    public GameOverState(GameStateMachine stateMachine)
+    public override StateType StateType => StateType.GameOver;
+
+    public GameOverState(
+        ICoroutineRunner coroutineRunner,
+        IStateTransitionRequester transitionRequester)
+        : base(coroutineRunner, transitionRequester)
     {
-        this.stateMachine = stateMachine;
     }
 
-    public string GetStateName() => "GameOver";
-
-    public void Enter(GameContext context)
+    public override void Enter(GameContext context)
     {
-        Debug.Log("Entering GameOver State");
         context.Ball.Hide();
         context.UIController.ShowGameOver(context.Score);
-        gameOverCoroutine = stateMachine.RunCoroutine(ExecuteGameOver());
+        gameOverCoroutine = coroutineRunner.StartManagedCoroutine(ExecuteGameOver());
     }
 
     private IEnumerator ExecuteGameOver()
     {
         yield return new WaitForSeconds(3);
-        stateMachine.GoToNextState();
+        transitionRequester.RequestTransition(StateType.Countdown);
     }
 
-    public void Update(GameContext context)
+    public override void Update(GameContext context)
     {
         // No frame logic for this state
     }
 
-    public void Exit(GameContext context)
+    public override void Exit(GameContext context)
     {
-        Debug.Log("Exiting GameOver State");
         context.UIController.HideGameOver();
-        stateMachine.StopRunningCoroutine(gameOverCoroutine);
+        coroutineRunner.StopManagedCoroutine(gameOverCoroutine);
     }
 }
