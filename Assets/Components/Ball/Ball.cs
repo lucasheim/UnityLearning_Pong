@@ -16,7 +16,7 @@ public class Ball : MonoBehaviour
 
     void Awake()
     {
-        ResetBall();
+        ResetPosition();
     }
 
     void Update()
@@ -35,7 +35,7 @@ public class Ball : MonoBehaviour
 
     // TODO: should this be at the game level instead of the ball?
     // Maybe the ball just exposes methods to change the internal stuff, but shouldn't get this data from the paddle as it makes it too game-aware
-    public BallActions CheckCollision(PaddleEdge topPaddleEdges, PaddleEdge bottomPaddleEdges)
+    public BallActions CheckCollision(PaddleEdges topPaddleEdges, PaddleEdges bottomPaddleEdges)
     {
         float ballX = transform.position.x;
         float ballY = transform.position.y;
@@ -48,7 +48,6 @@ public class Ball : MonoBehaviour
                 float offset = GetTouchOffset(ballX, topPaddleEdges);
                 speedVec.y = -speedVec.y;
                 speedVec.x = offset * speed;
-                // new code?
                 speedVec = speedVec.normalized * speed;
                 transform.position = new Vector3(ballX, topBoundary, ballZ);
                 return BallActions.PaddleTouch;    
@@ -65,7 +64,6 @@ public class Ball : MonoBehaviour
                 float offset = GetTouchOffset(ballX, bottomPaddleEdges);
                 speedVec.y = -speedVec.y;
                 speedVec.x = offset * speed;
-                // new code?
                 speedVec = speedVec.normalized * speed;
                 transform.position = new Vector3(ballX, bottomBoundary, ballZ);
                 return BallActions.PaddleTouch;
@@ -90,19 +88,29 @@ public class Ball : MonoBehaviour
         return BallActions.None;
     }
 
-    public void ResetBall()
+    public void ResetPosition()
     {
         transform.position = new Vector3(0, 0, 0);
         float newBallAngle = Random.Range(0.3f, 0.6f);
         speedVec = new Vector2(speed, speed * -newBallAngle);
     }
 
-    private bool TouchesPaddle(float value, PaddleEdge paddleEdge)
+    public void Show()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void Hide()
+    {
+        gameObject.SetActive(false);
+    }
+
+    private bool TouchesPaddle(float value, PaddleEdges paddleEdge)
     {
         return value >= paddleEdge.leftEdge && value <= paddleEdge.rightEdge;
     }
 
-    private float GetTouchOffset(float ballX, PaddleEdge paddleEdge)
+    private float GetTouchOffset(float ballX, PaddleEdges paddleEdge)
     {
         float contactOffset = ballX - paddleEdge.leftEdge;
         float fullPaddleWidth = paddleEdge.rightEdge - paddleEdge.leftEdge;

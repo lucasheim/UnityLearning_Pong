@@ -1,11 +1,11 @@
 using UnityEngine;
 
-public struct PaddleEdge
+public struct PaddleEdges
 {
     public float leftEdge;
     public float rightEdge;
 
-    public PaddleEdge(float leftEdge, float rightEdge)
+    public PaddleEdges(float leftEdge, float rightEdge)
     {
         this.leftEdge = leftEdge;
         this.rightEdge = rightEdge;
@@ -56,9 +56,9 @@ public class Paddle : MonoBehaviour
         transform.position = newPosition;
     }
 
-    public PaddleEdge GetEdges()
+    public PaddleEdges GetEdges()
     {
         float radius = transform.localScale.x / 2;
-        return new PaddleEdge(transform.position.x - radius, transform.position.x + radius);
+        return new PaddleEdges(transform.position.x - radius, transform.position.x + radius);
     }
 }
